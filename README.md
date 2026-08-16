@@ -6,7 +6,7 @@ with Transformers). The project trains a visual behavior-cloning policy for
 ALOHA simulated transfer-cube manipulation, evaluates it in closed loop, and
 tests how action-chunk configuration changes task success.
 
-**Final baseline:** 70.0% success (35/50 closed-loop episodes)  
+**Final baseline:** 70.0% success (35/50 closed-loop episodes)<br>
 **Best chunk configuration:** 86.0% success (43/50) with `(chunk_size,
 n_action_steps) = (50, 50)`
 
