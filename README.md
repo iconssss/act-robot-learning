@@ -14,7 +14,7 @@ The first benchmark is planned as the official ALOHA simulated transfer-cube tas
 - Environment: `AlohaTransferCube-v0`
 - Policy: ACT
 
-The dataset/environment/policy combination is currently covered by LeRobot's source tests. The exact LeRobot commit will be pinned after the local smoke test and cloud-environment validation.
+The dataset/environment/policy combination is currently covered by LeRobot's source tests. The implementation is pinned to LeRobot 0.6.0; the environment record and exact dataset revision are in `environment/system_info.md` and `docs/00_environment.md`.
 
 ## Development topology
 
@@ -53,7 +53,17 @@ Initial cloud layout, to create only when GPU setup begins:
 - [x] Cloud ACT smoke test (1 batch; dataset → forward/loss → action chunk)
 - [x] Local WSL CPU reproduction of the smoke test (1 bounded CPU batch)
 - [x] GPU ACT training calibration (100 optimisation steps; throughput and storage measured)
-- [ ] Full GPU baseline, rollout, evaluation, ablations, and failure analysis
+- [x] Full GPU ACT baseline (100k steps) and 50-episode closed-loop evaluation
+- [x] Baseline rollout videos and quantitative evaluation table
+- [ ] Action-chunk ablation and failure analysis
+
+## Baseline result
+
+The 100k-step ACT baseline achieves **70.0% success (35/50 episodes)** in
+closed-loop `AlohaTransferCube-v0` evaluation. Intermediate checkpoints were
+evaluated under the same protocol; see `docs/04_rollout.md` and
+`results/tables/baseline_metrics.csv`. Training loss is not used as the task
+success claim: the reported metric comes from simulation rollouts.
 
 ## Security note
 

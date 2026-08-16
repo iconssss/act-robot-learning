@@ -1,0 +1,6 @@
+step,n_episodes,success_rate_pct,avg_sum_reward,avg_max_reward,eval_seconds,status
+20000,,,,,,interrupted_before_EGL_fix
+40000,50,64.0,187.42,3.10,1326.03,complete
+60000,50,60.0,168.40,2.94,1316.48,complete
+80000,50,58.0,179.56,2.96,1377.02,complete
+100000,50,70.0,194.18,3.26,639.72,complete
