@@ -1,0 +1,8 @@
+# Core Python packages for the robot-cloud GPU environment.
+# Install inside the dedicated prefix; see system_info.md for the Conda ffmpeg pin.
+lerobot[aloha,training]==0.6.0
+torch==2.11.0
+torchvision==0.26.0
+torchcodec==0.11.1
+mujoco==3.8.1
+matplotlib==3.11.1

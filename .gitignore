@@ -1,0 +1,32 @@
+# Python environments and caches
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.cache/
+
+# Machine-specific secrets and SSH material
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+id_*
+
+# Large/generated experiment artifacts
+data/
+datasets/
+checkpoints/
+outputs/
+wandb/
+results/videos/
+results/figures/*.mp4
+results/figures/*.gif
+
+# IDE and OS metadata
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
