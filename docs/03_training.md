@@ -72,6 +72,20 @@ exposed and fixed: (1) the current package's CLI is `lerobot-train`, not a
 `lerobot.scripts.train` module; (2) LeRobot must create a fresh `output_dir`;
 and (3) `policy.push_to_hub` must be explicitly false for this local-only run.
 
+## Headless simulation requirement
+
+The 4090 container has no desktop display. At the first full-run evaluation
+(step 20,000), `gym-aloha` asks `dm_control` to render the top camera and the
+GLFW default fails with `mujoco.FatalError: an OpenGL platform library has not
+been loaded`. This is a **simulation rendering** issue, not an ACT loss,
+dataset, CUDA, or checkpoint problem. The completed `020000` checkpoint is
+preserved on shared storage. `scripts/train_baseline.sh` therefore exports
+`MUJOCO_GL=egl` and `PYOPENGL_PLATFORM=egl`, selecting the headless,
+GPU-backed EGL renderer. A 64x64 `dm_control` render test passed on the RTX
+4090 before resuming. This changes only rendering backend selection during
+simulation; it does not change policy weights, demonstrations, optimizer, or
+the experimental configuration.
+
 ## Required run record
 
 Each completed run must preserve its resolved `train_config.json`, command,

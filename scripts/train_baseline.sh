@@ -26,10 +26,16 @@ export HF_HOME="${HF_HOME:-/root/shared-nvme/hf-cache}"
 export HF_ENDPOINT="${HF_ENDPOINT:-https://hf-mirror.com}"
 export HF_HUB_DISABLE_XET="${HF_HUB_DISABLE_XET:-1}"
 export TORCH_HOME="${TORCH_HOME:-/root/shared-nvme/torch-hub}"
+# gym-aloha renders camera observations through dm_control during evaluation.
+# This cloud container is headless, so explicitly select the GPU-backed EGL
+# platform instead of the display-dependent GLFW default.
+export MUJOCO_GL="${MUJOCO_GL:-egl}"
+export PYOPENGL_PLATFORM="${PYOPENGL_PLATFORM:-egl}"
 
 echo "Using config: ${CONFIG_PATH}"
 echo "Writing outputs: ${RUN_DIR}"
 echo "Writing console log: ${LOG_PATH}"
+echo "MuJoCo render backend: ${MUJOCO_GL}"
 echo "Command overrides: $*"
 
 "${ENV_PYTHON%/python}/lerobot-train" --config_path "${CONFIG_PATH}" "$@" 2>&1 \
