@@ -64,3 +64,26 @@ machine-readable table is `results/tables/chunk_ablation_metrics.csv`.
   consistency and increases policy-query frequency.
 - One seed is an engineering ablation, not a statistical claim of universal
   superiority. A follow-up should add seeds if a result is close or important.
+
+## Multi-seed confirmation protocol
+
+The original comparison used seed 1000. To measure training-run variance for
+the central result, repeat only the baseline `(100,100)` and short `(50,50)`
+conditions with seeds **1001** and **1002**. This adds four full 100k-step
+runs. Dataset revision, all model fields except the seed, batch size, steps,
+evaluation frequency, 50-episode final evaluation, and EGL backend remain
+fixed.
+
+Run serially on **robot-cloud**:
+
+```bash
+bash scripts/train_multiseed.sh baseline 1001
+bash scripts/train_multiseed.sh short 1001
+bash scripts/train_multiseed.sh baseline 1002
+bash scripts/train_multiseed.sh short 1002
+```
+
+The expected additional runtime is 10--12 RTX 4090 hours (about 20--24 RMB at
+the observed 2 RMB/hour rate). The long condition is not repeated because the
+immediate question is whether short improves on the baseline; this is a
+targeted confirmation rather than a full three-condition statistical study.
