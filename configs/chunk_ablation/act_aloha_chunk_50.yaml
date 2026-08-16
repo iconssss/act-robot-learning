@@ -1,0 +1,55 @@
+# Short action-chunk ablation. All non-chunk baseline settings are unchanged.
+dataset:
+  repo_id: lerobot/aloha_sim_transfer_cube_human
+  root: /root/shared-nvme/datasets/aloha_sim_transfer_cube_human
+  revision: 6a43d500f101255823a9d2b9dc244eeb01a2cd31
+env:
+  type: aloha
+  task: AlohaTransferCube-v0
+  fps: 50
+  episode_length: 400
+  obs_type: pixels_agent_pos
+  observation_height: 480
+  observation_width: 640
+  render_mode: rgb_array
+policy:
+  type: act
+  device: cuda
+  n_obs_steps: 1
+  chunk_size: 50
+  n_action_steps: 50
+  vision_backbone: resnet18
+  pretrained_backbone_weights: ResNet18_Weights.IMAGENET1K_V1
+  dim_model: 512
+  n_heads: 8
+  dim_feedforward: 3200
+  n_encoder_layers: 4
+  n_decoder_layers: 1
+  use_vae: true
+  latent_dim: 32
+  n_vae_encoder_layers: 4
+  kl_weight: 10.0
+  temporal_ensemble_coeff: null
+  push_to_hub: false
+output_dir: /root/shared-nvme/act-robot-learning/experiments/chunk_ablation/act_aloha_chunk_50_seed1000
+job_name: act_aloha_chunk_50
+seed: 1000
+cudnn_deterministic: true
+num_workers: 4
+prefetch_factor: 4
+persistent_workers: true
+batch_size: 8
+steps: 100000
+log_freq: 100
+env_eval_freq: 20000
+save_checkpoint: true
+save_freq: 20000
+use_policy_training_preset: true
+eval:
+  n_episodes: 50
+  batch_size: 1
+  use_async_envs: false
+  recording: false
+wandb:
+  enable: false
+  mode: disabled
