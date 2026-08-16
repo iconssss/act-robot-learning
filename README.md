@@ -1,79 +1,186 @@
-# ACT Robot Learning
+# ACT Robot Learning: Closed-Loop Visual Imitation in Simulation
 
-An experimental robotics-learning project that studies visual imitation learning and closed-loop simulation control with LeRobot and ACT (Action Chunking with Transformers).
+An end-to-end, reproducible embodied-learning project built with
+[LeRobot](https://github.com/huggingface/lerobot) and ACT (Action Chunking
+with Transformers). The project trains a visual behavior-cloning policy for
+ALOHA simulated transfer-cube manipulation, evaluates it in closed loop, and
+tests how action-chunk configuration changes task success.
 
-## Goal
+**Final baseline:** 70.0% success (35/50 closed-loop episodes)  
+**Best chunk configuration:** 86.0% success (43/50) with `(chunk_size,
+n_action_steps) = (50, 50)`
 
-Build and explain the complete learning loop:
+## Project overview
 
-`robot observation -> LeRobotDataset -> ACT action chunk -> simulation rollout -> quantitative evaluation -> ablation`
+The objective was not merely to run an official demo. This repository makes
+the full robotics-learning loop inspectable: dataset schema, policy data flow,
+GPU training, simulation rollout, quantitative evaluation, an ablation, and
+failure cases drawn from actual rollout videos.
 
-The first benchmark is planned as the official ALOHA simulated transfer-cube task:
-
-- Dataset: `lerobot/aloha_sim_transfer_cube_human`
-- Environment: `AlohaTransferCube-v0`
-- Policy: ACT
-
-The dataset/environment/policy combination is currently covered by LeRobot's source tests. The implementation is pinned to LeRobot 0.6.0; the environment record and exact dataset revision are in `environment/system_info.md` and `docs/00_environment.md`.
-
-## Development topology
-
-| Location | Responsibility | Persistent location |
-| --- | --- | --- |
-| Windows (`D:\\600-Robot\\300-Project\\100-Project01`) | Project coordination, Git working copy, documentation, Codex | local disk + GitHub once connected |
-| Local WSL2 | Lightweight CPU inspection, package/schema debugging, reproducibility checks | `~/projects/act-robot-learning` when the Linux working copy is created |
-| `robot-cloud` RTX 4090 | CUDA, MuJoCo simulation, training, rollout, evaluation | `/root/shared-nvme/act-robot-learning` |
-
-Do not treat a container filesystem as the only copy of code or results. Git/GitHub is the code source of truth; cloud shared storage holds durable runtime artifacts.
-
-## Cloud storage policy
-
-- `/root/shared-nvme`: write project artifacts here (50 GB persistent shared volume).
-- `/shared-public`: read-only; never write checkpoints or results here.
-- Container `/`: temporary (30 GB); do not keep unique data or checkpoints here.
-
-Initial cloud layout, to create only when GPU setup begins:
-
-```text
-/root/shared-nvme/act-robot-learning/  # clone of this repository
-/root/shared-nvme/hf-cache/            # Hugging Face datasets/models
-/root/shared-nvme/checkpoints/          # retained checkpoints
-/root/shared-nvme/results/              # logs, tables, figures, rollout videos
+```mermaid
+flowchart LR
+    D["ALOHA demonstrations<br/>RGB + 14-D state + 14-D action"] --> P["ACT training<br/>CVAE + Transformer"]
+    P --> C["Future action chunk"]
+    C --> E["AlohaTransferCube-v0"]
+    E --> O["New RGB + state observation"]
+    O --> P
+    E --> M["Success rate, videos,<br/>failure analysis"]
 ```
 
-## Current status
+## Benchmark and data
 
-- [x] WSL2 and local resource audit
-- [x] `robot-cloud` direct key-based SSH path and RTX 4090 CUDA validation
-- [x] Cloud persistent-storage paths verified
-- [x] LeRobot 0.6.0 environment and version pin
-- [x] Dataset inspection (pinned ALOHA revision; one decoded sample)
-- [x] Episode visualization (RGB, state/action trajectories, MP4 and GIF)
-- [x] ACT source-level architecture and action-chunk data-flow analysis
-- [x] Cloud ACT smoke test (1 batch; dataset → forward/loss → action chunk)
-- [x] Local WSL CPU reproduction of the smoke test (1 bounded CPU batch)
-- [x] GPU ACT training calibration (100 optimisation steps; throughput and storage measured)
-- [x] Full GPU ACT baseline (100k steps) and 50-episode closed-loop evaluation
-- [x] Baseline rollout videos and quantitative evaluation table
-- [x] Action-chunk configuration ablation (three 100k-step conditions)
-- [ ] Failure analysis and optional multi-seed confirmation
+- **Dataset:** `lerobot/aloha_sim_transfer_cube_human`
+- **Pinned revision:** `6a43d500f101255823a9d2b9dc244eeb01a2cd31`
+- **Task:** `AlohaTransferCube-v0` at 50 Hz
+- **Demonstrations:** 50 episodes / 20,000 frames
+- **Observation:** one top RGB camera plus 14-D dual-arm proprioceptive state
+- **Action:** 14-D dual-arm joint action
 
-## Baseline result
+Dataset fields, physical dimensions, statistics, and an episode visualization
+are documented in [docs/01_dataset.md](docs/01_dataset.md). The visualizer and
+schema inspector are in [scripts/visualize_episode.py](scripts/visualize_episode.py)
+and [scripts/inspect_dataset.py](scripts/inspect_dataset.py).
 
-The 100k-step ACT baseline achieves **70.0% success (35/50 episodes)** in
-closed-loop `AlohaTransferCube-v0` evaluation. Intermediate checkpoints were
-evaluated under the same protocol; see `docs/04_rollout.md` and
-`results/tables/baseline_metrics.csv`. Training loss is not used as the task
-success claim: the reported metric comes from simulation rollouts.
+## ACT data flow
+
+At training time, the current RGB image and robot state condition ACT; the
+ground-truth future action sequence supervises a predicted action chunk. At
+inference time there is no future ground truth: the environment applies selected
+actions, returns a fresh observation, and the policy replans.
+
+```text
+top RGB -> ResNet-18 visual encoder -> visual tokens --+
+                                                      +-> ACT Transformer -> future 14-D action chunk
+14-D robot state ------------------------------------+
+```
+
+The implementation uses LeRobot 0.6.0 ACT with ResNet-18, a CVAE latent size
+of 32, one observation step, no temporal ensembling, and EGL headless MuJoCo
+rendering. [docs/02_act_architecture.md](docs/02_act_architecture.md) traces
+the current source-level preprocessing, model, loss, `select_action`, and
+action-chunk execution path.
+
+## Environment and reproducibility
+
+| Item | Value |
+| --- | --- |
+| Local development | Windows + WSL2 Ubuntu 22.04, CPU-only smoke tests |
+| Training/evaluation | Ubuntu 24.04 container, 1× RTX 4090 (24 GB) |
+| Python | 3.12.13 |
+| LeRobot | 0.6.0 |
+| PyTorch | 2.11.0+cu130 |
+| MuJoCo | 3.8.1, EGL headless renderer |
+| Seed | 1000 |
+| Dataset storage | cloud persistent shared volume |
+
+Full commands, cache locations, environment records, and known cloud
+constraints are in [docs/00_environment.md](docs/00_environment.md) and
+[environment/system_info.md](environment/system_info.md). Large checkpoints,
+datasets, and MP4s are intentionally excluded from Git and retained in cloud
+shared storage.
+
+## Training
+
+Run these commands on a Linux GPU machine after following the environment
+notes. The configurations fix dataset revision, seed, batch size (8), training
+steps (100k), and 50-episode evaluation protocol.
+
+```bash
+# ACT baseline: chunk_size=100, n_action_steps=100
+bash scripts/train_baseline.sh
+
+# Action-chunk configurations
+bash scripts/train_chunk_ablation.sh short  # (50, 50)
+bash scripts/train_chunk_ablation.sh long   # (150, 150)
+```
+
+`scripts/train_baseline.sh` sets persistent Hugging Face/Torch caches, uses
+the headless EGL renderer, and handles a LeRobot 0.6.0 resume-specific CLI
+detail. See [docs/03_training.md](docs/03_training.md).
+
+## Closed-loop evaluation
+
+At each milestone, LeRobot runs 50 fresh simulation rollouts, up to 400 steps
+per episode. This is the metric used for claims—not training loss.
+
+| baseline checkpoint | success rate | average return |
+| ---: | ---: | ---: |
+| 40k | 64.0% | 187.42 |
+| 60k | 60.0% | 168.40 |
+| 80k | 58.0% | 179.56 |
+| 100k | **70.0%** | **194.18** |
+
+The 20k baseline checkpoint was preserved, but its evaluation was interrupted
+before EGL was configured; it is explicitly marked missing rather than counted
+as failure. [docs/04_rollout.md](docs/04_rollout.md) explains the rollout
+loop and documents all evaluation artifacts.
 
 ## Action-chunk ablation
 
-Changing the joint prediction/execution configuration from baseline `(100,100)`
-to short `(50,50)` increased final closed-loop success from 70.0% to **86.0%**
-under the same seed and 50-episode protocol. The long `(150,150)` condition
-reached 82.0%. This is a one-seed engineering result, not a universal
-statistical claim; details and boundaries are in `docs/05_experiments.md`.
+The experiment jointly varies the prediction horizon and execution/replanning
+interval while holding dataset, architecture, seed, batch size, steps, and
+evaluation protocol fixed.
 
-## Security note
+| configuration | chunk size | actions before replan | final success |
+| --- | ---: | ---: | ---: |
+| short | 50 | 50 (1.0 s) | **86.0% (43/50)** |
+| baseline | 100 | 100 (2.0 s) | 70.0% (35/50) |
+| long | 150 | 150 (3.0 s) | 82.0% (41/50) |
 
-The cloud direct SSH endpoint is key-authenticated. Private keys remain only on the Windows host and are never committed to this repository.
+In this fixed-seed engineering comparison, more frequent replanning performed
+best. This is not a universal or statistical claim: a multi-seed repetition is
+the appropriate next experiment. See [docs/05_experiments.md](docs/05_experiments.md)
+and [results/tables/chunk_ablation_metrics.csv](results/tables/chunk_ablation_metrics.csv).
+
+## Demo
+
+Short `(50,50)`, final 100k checkpoint, successful rollout. Four sampled
+frames show approach, grasp/transfer, and final left-side placement.
+
+![Successful closed-loop rollout](results/figures/demo/short_100k_success_ep0.jpg)
+
+Original MP4 rollout videos are retained outside Git on persistent cloud
+storage. `scripts/make_rollout_contact_sheet.py` converts selected MP4s into
+small, versioned review figures without GPU use.
+
+## Failure analysis
+
+The repository indexes 56 recorded rollout videos using LeRobot's per-episode
+success labels; 20 are failures. Six annotated cases cover failed approach,
+unstable handoff, partial transport, and missed final placement. The analysis
+separates visual observation from mechanism hypotheses and includes the
+underlying contact sheets.
+
+See [docs/06_failure_analysis.md](docs/06_failure_analysis.md) and
+[results/tables/recorded_rollouts.csv](results/tables/recorded_rollouts.csv).
+
+## Key engineering takeaways
+
+- Robot imitation learning supervises **future action sequences**, not an
+  image class label; actions change the next observation distribution.
+- Low behavior-cloning loss does not guarantee manipulation success. Closed-
+  loop success rate and videos expose errors that loss alone cannot.
+- `chunk_size` controls the predicted future horizon; `n_action_steps`
+  determines when the controller gets a new chance to correct using feedback.
+- Cloud reproducibility requires persistent storage, version pinning, logs,
+  checkpoints, video evidence, and explicit headless rendering configuration.
+- A one-seed ablation is useful engineering evidence, but uncertainty should
+  be addressed with repeated seeds before making a broad research claim.
+
+## Repository layout
+
+```text
+configs/       frozen baseline and ablation configurations
+docs/          environment, dataset, ACT, training, rollout, experiments, failures
+scripts/       inspection, visualization, training, result/video indexing tools
+results/       committed tables and lightweight contact sheets
+environment/   pinned Python packages and system record
+```
+
+## Next improvements
+
+1. Repeat baseline/short/long with additional seeds to measure variance.
+2. Add a state-only or camera-modality ablation if implemented without changing
+   the evaluation protocol.
+3. Evaluate the final policies on 100 episodes and inspect sensitivity to
+   initial object placement.
