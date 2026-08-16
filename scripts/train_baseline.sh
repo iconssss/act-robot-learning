@@ -38,5 +38,8 @@ echo "Writing console log: ${LOG_PATH}"
 echo "MuJoCo render backend: ${MUJOCO_GL}"
 echo "Command overrides: $*"
 
-"${ENV_PYTHON%/python}/lerobot-train" --config_path "${CONFIG_PATH}" "$@" 2>&1 \
+# LeRobot 0.6.0's resume resolver re-reads sys.argv and only recognizes the
+# equals form (``--config_path=/path``), while a space-separated argument is
+# sufficient for a fresh run but makes ``--resume=true`` miss the checkpoint.
+"${ENV_PYTHON%/python}/lerobot-train" --config_path="${CONFIG_PATH}" "$@" 2>&1 \
   | tee "${LOG_PATH}"

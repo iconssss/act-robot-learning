@@ -86,6 +86,13 @@ GPU-backed EGL renderer. A 64x64 `dm_control` render test passed on the RTX
 simulation; it does not change policy weights, demonstrations, optimizer, or
 the experimental configuration.
 
+LeRobot 0.6.0 has a resume-specific CLI detail: its checkpoint resolver
+re-reads `sys.argv` and recognizes `--config_path=/path/to/train_config.json`,
+but not the otherwise valid space-separated form. The launcher uses the equals
+form so a fresh run and a resumed run share one command path. This was verified
+by inspecting the installed `lerobot.configs.parser.parse_arg` implementation;
+it is an upstream version behavior, not a dataset or checkpoint mismatch.
+
 ## Required run record
 
 Each completed run must preserve its resolved `train_config.json`, command,
