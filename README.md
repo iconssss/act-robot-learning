@@ -55,7 +55,8 @@ Initial cloud layout, to create only when GPU setup begins:
 - [x] GPU ACT training calibration (100 optimisation steps; throughput and storage measured)
 - [x] Full GPU ACT baseline (100k steps) and 50-episode closed-loop evaluation
 - [x] Baseline rollout videos and quantitative evaluation table
-- [ ] Action-chunk ablation and failure analysis
+- [x] Action-chunk configuration ablation (three 100k-step conditions)
+- [ ] Failure analysis and optional multi-seed confirmation
 
 ## Baseline result
 
@@ -64,6 +65,14 @@ closed-loop `AlohaTransferCube-v0` evaluation. Intermediate checkpoints were
 evaluated under the same protocol; see `docs/04_rollout.md` and
 `results/tables/baseline_metrics.csv`. Training loss is not used as the task
 success claim: the reported metric comes from simulation rollouts.
+
+## Action-chunk ablation
+
+Changing the joint prediction/execution configuration from baseline `(100,100)`
+to short `(50,50)` increased final closed-loop success from 70.0% to **86.0%**
+under the same seed and 50-episode protocol. The long `(150,150)` condition
+reached 82.0%. This is a one-seed engineering result, not a universal
+statistical claim; details and boundaries are in `docs/05_experiments.md`.
 
 ## Security note
 

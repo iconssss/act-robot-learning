@@ -35,6 +35,25 @@ including four 50-episode milestones per run. At the observed 2 RMB/hour
 voucher rate, this is about 10--12 RMB. Each run writes checkpoints, logs and
 rollout videos under `/root/shared-nvme/act-robot-learning/experiments/chunk_ablation/`.
 
+## Result
+
+All three conditions completed 100k optimisation steps and the same final
+50-episode closed-loop evaluation protocol.
+
+| configuration | final successes | success rate | average return |
+| --- | ---: | ---: | ---: |
+| short `(50, 50)` | 43 / 50 | **86.0%** | **239.22** |
+| baseline `(100, 100)` | 35 / 50 | 70.0% | 194.18 |
+| long `(150, 150)` | 41 / 50 | 82.0% | 220.92 |
+
+Under this fixed seed and simulator protocol, the short configuration produced
+the strongest final outcome. It replans every 1.0 second rather than every 2.0
+or 3.0 seconds, which is consistent with the hypothesis that more frequent
+visual feedback helps correct manipulation drift. The long condition still
+outperformed the baseline, so this single result does **not** establish a
+monotonic relationship or prove that shorter is universally better. The
+machine-readable table is `results/tables/chunk_ablation_metrics.csv`.
+
 ## Interpretation rules (pre-registered)
 
 - Compare final 100k, 50-episode success rates first; loss is supporting
