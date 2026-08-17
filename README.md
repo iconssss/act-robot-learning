@@ -40,6 +40,10 @@ are documented in [docs/01_dataset.md](docs/01_dataset.md). The visualizer and
 schema inspector are in [scripts/visualize_episode.py](scripts/visualize_episode.py)
 and [scripts/inspect_dataset.py](scripts/inspect_dataset.py).
 
+For a guided study path, source-level reading order, rerun procedure, training
+debugging checklist, and interview narration template, see
+[docs/10_study_playbook.md](docs/10_study_playbook.md).
+
 ## ACT data flow
 
 At training time, the current RGB image and robot state condition ACT; the
@@ -141,9 +145,10 @@ frames show approach, grasp/transfer, and final left-side placement.
 
 ![Successful closed-loop rollout](results/figures/demo/short_100k_success_ep0.jpg)
 
-Original MP4 rollout videos are retained outside Git on persistent cloud
-storage. `scripts/make_rollout_contact_sheet.py` converts selected MP4s into
-small, versioned review figures without GPU use.
+The original MP4 rollout videos were converted into small, versioned contact
+sheets before the cloud copies were intentionally removed after final results.
+`scripts/make_rollout_contact_sheet.py` performs that conversion without GPU
+use when raw videos are available.
 
 ## Failure analysis
 
