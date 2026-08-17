@@ -6,9 +6,8 @@ with Transformers). The project trains a visual behavior-cloning policy for
 ALOHA simulated transfer-cube manipulation, evaluates it in closed loop, and
 tests how action-chunk configuration changes task success.
 
-**Final baseline:** 70.0% success (35/50 closed-loop episodes)<br>
-**Best chunk configuration:** 86.0% success (43/50) with `(chunk_size,
-n_action_steps) = (50, 50)`
+**Original baseline:** 70.0% success (35/50 closed-loop episodes)<br>
+**Three-seed comparison:** baseline 72.67% +/- 10.26 vs short 76.00% +/- 8.72
 
 ## Project overview
 
@@ -123,14 +122,16 @@ evaluation protocol fixed.
 
 | configuration | chunk size | actions before replan | final success |
 | --- | ---: | ---: | ---: |
-| short | 50 | 50 (1.0 s) | **86.0% (43/50)** |
+| short | 50 | 50 (1.0 s) | **86.0% (43/50), seed 1000** |
 | baseline | 100 | 100 (2.0 s) | 70.0% (35/50) |
 | long | 150 | 150 (3.0 s) | 82.0% (41/50) |
 
-In this fixed-seed engineering comparison, more frequent replanning performed
-best. This is not a universal or statistical claim: a multi-seed repetition is
-the appropriate next experiment. See [docs/05_experiments.md](docs/05_experiments.md)
-and [results/tables/chunk_ablation_metrics.csv](results/tables/chunk_ablation_metrics.csv).
+The three-seed confirmation repeats baseline and short: short averages 76.00%
+versus 72.67% for baseline, but the observed seed-to-seed variance overlaps.
+Thus short is promising evidence, not a claim of statistical superiority. See
+[docs/05_experiments.md](docs/05_experiments.md),
+[results/tables/chunk_ablation_metrics.csv](results/tables/chunk_ablation_metrics.csv),
+and [results/tables/multiseed_summary.csv](results/tables/multiseed_summary.csv).
 
 ## Demo
 

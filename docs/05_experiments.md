@@ -87,3 +87,19 @@ The expected additional runtime is 10--12 RTX 4090 hours (about 20--24 RMB at
 the observed 2 RMB/hour rate). The long condition is not repeated because the
 immediate question is whether short improves on the baseline; this is a
 targeted confirmation rather than a full three-condition statistical study.
+
+### Multi-seed result
+
+All six final evaluations use 50 fresh rollout episodes. The original seed
+1000 result remains part of the comparison.
+
+| condition | seed 1000 | seed 1001 | seed 1002 | mean +/- sample std |
+| --- | ---: | ---: | ---: | ---: |
+| baseline `(100,100)` | 70.0% | 84.0% | 64.0% | 72.67% +/- 10.26 |
+| short `(50,50)` | 86.0% | 70.0% | 72.0% | 76.00% +/- 8.72 |
+
+Short has a 3.33 percentage-point higher mean under these three seeds, but the
+sample variation overlaps. It is therefore accurate to call short a promising
+configuration under this benchmark, not to claim statistical superiority. The
+per-run and aggregate records are in `results/tables/multiseed_final_runs.csv`
+and `results/tables/multiseed_summary.csv`.
