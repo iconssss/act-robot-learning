@@ -75,8 +75,9 @@ action-chunk execution path.
 Full commands, cache locations, environment records, and known cloud
 constraints are in [docs/00_environment.md](docs/00_environment.md) and
 [environment/system_info.md](environment/system_info.md). Large checkpoints,
-datasets, and MP4s are intentionally excluded from Git and retained in cloud
-shared storage.
+datasets, and MP4s are intentionally excluded from Git. After the final
+multi-seed runs, the cloud copies were deliberately removed to release GPU
+storage; the committed tables, figures, configs, and provenance remain here.
 
 ## Training
 
@@ -165,8 +166,9 @@ See [docs/06_failure_analysis.md](docs/06_failure_analysis.md) and
   determines when the controller gets a new chance to correct using feedback.
 - Cloud reproducibility requires persistent storage, version pinning, logs,
   checkpoints, video evidence, and explicit headless rendering configuration.
-- A one-seed ablation is useful engineering evidence, but uncertainty should
-  be addressed with repeated seeds before making a broad research claim.
+- The baseline/short comparison was repeated across three training seeds; its
+  overlapping seed variation supports a cautious conclusion, not a claim of
+  statistical superiority. The long configuration remains a one-seed result.
 
 ## Repository layout
 
@@ -180,7 +182,8 @@ environment/   pinned Python packages and system record
 
 ## Next improvements
 
-1. Repeat baseline/short/long with additional seeds to measure variance.
+1. Repeat the long configuration (and, if budget permits, add seeds to all
+   conditions) to narrow the uncertainty around the chunk-length conclusion.
 2. Add a state-only or camera-modality ablation if implemented without changing
    the evaluation protocol.
 3. Evaluate the final policies on 100 episodes and inspect sensitivity to
